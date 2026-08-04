@@ -9,7 +9,7 @@ Windows has had middle-click autoscroll but macOS never has this useful feature.
 - Lightweight, lives in the menu bar
 - Customizability through the menu bar
 
-## **Not Notarized by Apple**
+## Not Notarized by Apple
 
 This app isn't signed with an Apple Developer certificate, so **Gatekeeper will block it the first time you open it**, with a message like:
 
