@@ -8,6 +8,7 @@ Windows has had middle-click autoscroll but macOS never has this useful feature.
 - Variable scroll speed based on how far you move from the click point
 - Lightweight, lives in the menu bar
 - Customizability through the menu bar
+- [Overview Video](https://www.youtube.com/watch?v=U1ITzwrvhTc)
 
 ## Not Notarized by Apple
 
