@@ -30,8 +30,7 @@ You only need to do this once per install/update.
 ### Homebrew (recommended)
 
 ```bash
-brew tap bafgd/macAutoScroll
-brew install --cask macAutoScroll
+brew install --cask bafgd/autoscroll/autoscroll
 ```
 
 ### Manual download
