@@ -1,15 +1,8 @@
-// EventTapManager.swift
-//
-// The core of the app. A system-wide CGEventTap watches for the trigger
-// button (default: middle mouse, button number 2) and implements the two
-// required interaction modes:
-//
-//   - Hold + drag  -> scroll live, stop the instant the button is released.
-//   - Quick click  -> enter continuous "toggle" scrolling that tracks the
-//                     cursor's offset from the click point, until the
-//                     trigger button is clicked again.
-//
-// Also cancels an active gesture on Esc, or on a left/right click.
+// Core of the app. A system-wide CGEventTap watches for the trigger
+// button (default: middle mouse) and handles two modes:
+//   - Hold + drag: scroll live, stop on release.
+//   - Quick click: toggle continuous scrolling until clicked again.
+// Also cancels an active gesture on Esc or a left/right click.
 
 import AppKit
 import CoreGraphics
@@ -30,9 +23,8 @@ final class EventTapManager {
     private let clickMaxDuration: CFAbsoluteTime = 0.25
     private let clickMaxMovement: CGFloat = 5.0
 
-    /// Tag we stamp on synthetic click events we generate ourselves, so our
-    /// own tap recognizes and ignores them instead of grabbing them right
-    /// back and re-triggering a scroll gesture (infinite loop otherwise).
+    // Tag stamped on synthetic click events we generate ourselves, so
+    // our own tap ignores them instead of re-triggering a scroll gesture.
     private let syntheticEventTag: Int64 = 0x4155_544F // "AUTO"
 
     private var settings: AppSettings { SettingsStore.shared.settings }
@@ -48,8 +40,7 @@ final class EventTapManager {
             return
         }
 
-        // If we got here via the poll loop after the user granted access
-        // in System Settings, stop polling — we're up and running now.
+        // stop polling once we're actually running
         trustPollTimer?.invalidate()
         trustPollTimer = nil
 
@@ -100,14 +91,12 @@ final class EventTapManager {
     }
 
     private func handle(proxy: CGEventTapProxy, type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
-        // Let our own synthetic click events (see passThroughClick) sail
-        // through untouched instead of being picked back up by this tap.
+        // let our own synthetic clicks pass through untouched
         if event.getIntegerValueField(.eventSourceUserData) == syntheticEventTag {
             return Unmanaged.passUnretained(event)
         }
 
-        // The system can disable a tap under load (e.g. if our callback is
-        // slow) — re-enable it so we don't silently stop working.
+        // re-enable the tap if the system disabled it under load
         if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
             if let tap = eventTap { CGEvent.tapEnable(tap: tap, enable: true) }
             return Unmanaged.passUnretained(event)
@@ -125,7 +114,7 @@ final class EventTapManager {
             guard button == settings.triggerButtonNumber else { return Unmanaged.passUnretained(event) }
 
             if mode == .clickToggle {
-                // Second click while already in toggle mode -> stop.
+                // second click while toggled on -> stop
                 mode = .idle
                 ScrollEngine.shared.stop()
                 return nil
@@ -133,7 +122,7 @@ final class EventTapManager {
 
             mouseDownTime = CFAbsoluteTimeGetCurrent()
             mouseDownLocation = event.location
-            mode = .holdDrag // provisional; resolved on mouse-up
+            mode = .holdDrag // provisional, resolved on mouse-up
             ScrollEngine.shared.start(origin: event.location)
             return nil // consume so the target app doesn't see the middle click
 
@@ -158,18 +147,16 @@ final class EventTapManager {
             if elapsed <= clickMaxDuration && moved <= clickMaxMovement {
                 switch settings.quickClickAction {
                 case .toggleScroll:
-                    // Resolves as a click -> switch into toggle mode, keep scrolling.
+                    // resolves as a click -> switch to toggle mode
                     mode = .clickToggle
                 case .passThroughClick:
-                    // Resolves as a click, but the user wants clicks to behave
-                    // normally (e.g. open a link) -> stop, and replay a real
-                    // click to the app underneath since we swallowed the original.
+                    // resolves as a click, replay it since we swallowed the original
                     mode = .idle
                     ScrollEngine.shared.stop()
                     replayClick(at: event.location, button: settings.triggerButtonNumber)
                 }
             } else {
-                // Was a drag -> stop on release.
+                // was a drag -> stop on release
                 mode = .idle
                 ScrollEngine.shared.stop()
             }
@@ -209,15 +196,13 @@ final class EventTapManager {
     }
 
     private func requestAccessibilityAccess() {
-        // Agent (LSUIElement) apps sometimes fail to surface the system
-        // permission sheet if the app isn't frontmost yet — make sure we are.
+        // make sure we're frontmost or the permission sheet may not show
         NSApp.activate(ignoringOtherApps: true)
 
         let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: true]
         _ = AXIsProcessTrustedWithOptions(options)
 
-        // Don't require a quit + relaunch: poll until the user flips the
-        // switch in System Settings, then start automatically.
+        // poll until the user flips the switch in System Settings
         trustPollTimer?.invalidate()
         trustPollTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             guard let self, AXIsProcessTrusted() else { return }
@@ -226,11 +211,8 @@ final class EventTapManager {
             self.start()
         }
 
-        // macOS only ever shows that system prompt once per binary. If it
-        // was dismissed or denied on an earlier run — very easy to do
-        // while testing, since every Xcode rebuild re-triggers it — it
-        // will never appear again on its own. Give the user a guaranteed,
-        // explicit way back in rather than a silent no-op.
+        // the system prompt only shows once per binary, so give a manual
+        // fallback in case it was already dismissed
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
             guard let self, !AXIsProcessTrusted() else { return }
             self.showAccessibilityInstructions()

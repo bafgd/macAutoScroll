@@ -1,5 +1,4 @@
-// AppDelegate.swift
-// Menu bar icon/menu, and opens the SwiftUI preferences window.
+// Menu bar icon/menu, opens the SwiftUI preferences window.
 
 import AppKit
 import SwiftUI
@@ -14,8 +13,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        // Make sure we stop any in-progress scroll and restore the real
-        // cursor before quitting cleanly.
+        // stop any active scroll and restore the cursor before quitting
         ScrollEngine.shared.stop()
         EventTapManager.shared.stopTap()
     }

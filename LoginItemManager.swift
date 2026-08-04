@@ -1,6 +1,4 @@
-// LoginItemManager.swift
-// Launch-at-login via SMAppService (macOS 13+). Below that, it no-ops with
-// a log message rather than failing to build.
+// Launch-at-login via SMAppService (macOS 13+). Older macOS just logs.
 
 import Foundation
 import ServiceManagement

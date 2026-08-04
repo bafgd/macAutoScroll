@@ -1,7 +1,6 @@
-// ScrollEngine.swift
 // Runs a 60Hz tick while autoscroll is active: computes distance/direction
-// from the origin point, applies dead zone + speed curve + axis lock, posts
-// a synthetic scroll-wheel CGEvent, and updates the cursor overlay icon.
+// from the origin, applies dead zone + speed curve + axis lock, posts a
+// synthetic scroll-wheel event, and updates the cursor overlay icon.
 
 import CoreGraphics
 import Foundation
@@ -26,7 +25,7 @@ final class ScrollEngine {
         let t = Timer(timeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in
             self?.tick()
         }
-        // .common so it keeps firing during menu tracking / window dragging.
+        // .common so it keeps firing during menu tracking / window dragging
         RunLoop.main.add(t, forMode: .common)
         timer = t
     }
@@ -63,8 +62,7 @@ final class ScrollEngine {
         }
 
         let effectiveDistance = distance - settings.deadZoneRadius
-        // Distance past the dead zone that counts as "full deflection" for
-        // the curve — user-configurable now instead of a hardcoded 100pt.
+        // distance past the dead zone treated as "full deflection"
         let rampDistance = max(settings.maxSpeedDistance, 1.0)
         let normalizedDistance = min(effectiveDistance / rampDistance, 1.0)
         let speedFactor = pow(normalizedDistance, settings.accelerationExponent) * settings.maxScrollSpeed
@@ -78,10 +76,8 @@ final class ScrollEngine {
         if settings.invertHorizontal { scrollDeltaX *= -1 }
         if settings.invertVertical { scrollDeltaY *= -1 }
 
-        // Both axes get a baseline sign flip to match how synthetic scroll
-        // deltas map to on-screen motion; the Invert toggles apply on top
-        // of that baseline, so "not inverted" is the correct/natural
-        // direction and checking Invert actually reverses it.
+        // baseline sign flip to match scroll-delta convention; invert
+        // toggles apply on top of that
         postScroll(deltaX: Int32(-scrollDeltaX), deltaY: Int32(-scrollDeltaY))
 
         CursorOverlayController.shared.move(to: currentPoint)
@@ -102,7 +98,7 @@ final class ScrollEngine {
     }
 
     private func directionForAngle(dx: CGFloat, dy: CGFloat) -> CursorDirection {
-        // Screen/CG space has y growing downward, so "north" (up) is -dy.
+        // y grows downward, so north (up) is -dy
         let angle = atan2(-dy, dx)
         let degrees = angle * 180 / .pi
         let normalized = degrees < 0 ? degrees + 360 : degrees

@@ -1,5 +1,4 @@
-// PreferencesView.swift
-// The customization panel — the other must-have feature.
+// The customization panel.
 
 import SwiftUI
 

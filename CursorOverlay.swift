@@ -1,11 +1,7 @@
-// CursorOverlay.swift
-//
-// macOS won't let a background app directly override the system cursor
-// while another app is frontmost, so we fake it: hide the real cursor and
-// float a small borderless window with our own icon at the pointer location.
-//
-// Draws 9 states: neutral (4-way) + 8 directional arrows, matching the
-// classic Windows autoscroll cursor behavior.
+// macOS won't let a background app override the system cursor while
+// another app is frontmost, so we fake it: hide the real cursor and
+// float a small borderless window with our own icon at the pointer.
+// Draws 9 states: neutral + 8 directional arrows.
 
 import AppKit
 import CoreGraphics
@@ -27,7 +23,7 @@ final class CursorOverlayController {
         icons = Self.generateIcons(size: 32)
     }
 
-    /// `cgPoint` is in CGEvent/Quartz coordinates (origin top-left, y-down).
+    // cgPoint is in CGEvent/Quartz coordinates (origin top-left, y-down)
     func show(at cgPoint: CGPoint) {
         guard SettingsStore.shared.settings.showCursorOverlay else { return }
         guard !isShowing else {
@@ -79,13 +75,9 @@ final class CursorOverlayController {
         CGDisplayShowCursor(CGMainDisplayID())
     }
 
-    /// Converts a CGEvent-style global point (origin top-left, y-down) into an
-    /// AppKit screen point (origin bottom-left, y-up). Assumes the primary/
-    /// menu-bar display defines the Quartz origin, which covers the common
-    /// single- or side-by-side-monitor case. Unusual arrangements (a display
-    /// positioned above/left of the primary one) may need a per-display
-    /// lookup instead — this only affects where the icon is drawn, not
-    /// whether scrolling works.
+    // Converts a Quartz point (top-left origin, y-down) to an AppKit
+    // screen point (bottom-left origin, y-up). Assumes the primary
+    // display defines the Quartz origin.
     private static func convertToCocoaScreenPoint(_ point: CGPoint) -> NSPoint {
         let primaryHeight = NSScreen.screens.first?.frame.height ?? NSScreen.main?.frame.height ?? 0
         return NSPoint(x: point.x, y: primaryHeight - point.y)
