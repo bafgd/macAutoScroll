@@ -54,7 +54,7 @@ AutoScroll needs **Accessibility** access to simulate scroll input:
 
 ## License
 
-[GNU General Public License v3.0](LICENSE)
+[GPL-3.0 license](LICENSE)
 
 ## Contributing
 
