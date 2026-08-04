@@ -35,7 +35,7 @@ brew install --cask bafgd/autoscroll/autoscroll
 
 ### Manual download
 
-1. Download the latest `.dmg` from the [Releases page](#).
+1. Download the latest `.dmg` from the [Releases page](https://github.com/bafgd/macAutoScroll/releases).
 2. Open it and drag **AutoScroll** into **Applications**.
 3. Launch it and follow the [Gatekeeper steps](https://github.com/bafgd/macAutoScroll#not-notarized-by-apple) above.
 
